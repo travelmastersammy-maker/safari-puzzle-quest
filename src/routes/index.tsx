@@ -138,7 +138,9 @@ function Game() {
         <button onClick={start} className="btn-chunky mt-6 max-w-xs justify-center">
           {mode === "hungry" ? "Try again 🍌" : mode === "fed" ? "Next puzzle ➜" : "Help Bongo! 🍌"}
         </button>
-        <p className="mt-3 text-sm font-bold opacity-70">Next puzzle: {gridFor(bananas)}×{gridFor(bananas)}</p>
+        <p className="mt-3 text-sm font-bold opacity-70">
+          Next puzzle: {PUZZLES[bananas % PUZZLES.length]!.emoji} {PUZZLES[bananas % PUZZLES.length]!.name} — {gridFor(bananas)}×{gridFor(bananas)}
+        </p>
       </main>
     );
   }
@@ -155,7 +157,7 @@ function Game() {
 
       <div className="mt-3 flex w-full max-w-sm items-center gap-3">
         <img src={stage.img} alt="Bongo" width={816} height={816} className="h-20 w-20 object-contain animate-bob" />
-        <div className="rounded-2xl bg-card px-4 py-2 font-bold shadow-pop">Help me fix the picture so I get a banana! 🍌</div>
+        <div className="rounded-2xl bg-card px-4 py-2 font-bold shadow-pop">Help me fix the {puzzle.emoji} {puzzle.name} picture so I get a banana! 🍌</div>
       </div>
 
       <div className="relative mt-4 aspect-square w-full max-w-sm rounded-3xl border-4 border-card bg-secondary p-1.5 shadow-pop">
