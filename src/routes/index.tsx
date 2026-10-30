@@ -7,10 +7,15 @@ import puzzleRhino from "@/assets/puzzle-rhino.jpg";
 import puzzleBuffalo from "@/assets/puzzle-buffalo.jpg";
 import puzzleMaasai from "@/assets/puzzle-maasai.jpg";
 import puzzleSnake from "@/assets/puzzle-snake.jpg";
-import bongoBaby from "@/assets/bongo-baby.png";
-import bongoTeen from "@/assets/bongo-teen.png";
-import bongoMighty from "@/assets/bongo-mighty.png";
-import bongoSad from "@/assets/bongo-sad.png";
+import bongoBabyAsset from "@/assets/bongo-baby.png.asset.json";
+import bongoTeenAsset from "@/assets/bongo-teen.png.asset.json";
+import bongoMightyAsset from "@/assets/bongo-mighty.png.asset.json";
+import bongoSadAsset from "@/assets/bongo-sad.png.asset.json";
+
+const bongoBaby = bongoBabyAsset.url;
+const bongoTeen = bongoTeenAsset.url;
+const bongoMighty = bongoMightyAsset.url;
+const bongoSad = bongoSadAsset.url;
 import { stageFor, gridFor, moveLimitFor, MIGHTY_AT } from "@/lib/bongo";
 
 export const Route = createFileRoute("/")({
