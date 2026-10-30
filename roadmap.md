@@ -1,0 +1,3 @@
+- [ ] Add park unlocking, wildlife collection, and gameplay upgrades.
+- [ ] Connect persistent progression while preserving existing Bongo progress.
+- [ ] Verify reward, replay, unlock, and drag flows with tests and the game.
