@@ -35,8 +35,8 @@ function shuffle(n: number) {
     const opts = [
       r > 0 && blank - n, r < n - 1 && blank + n, c > 0 && blank - 1, c < n - 1 && blank + 1,
     ].filter((x): x is number => x !== false && x !== prev);
-    const pick = opts[Math.floor(Math.random() * opts.length)];
-    [t[blank], t[pick]] = [t[pick], t[blank]];
+    const pick = opts[Math.floor(Math.random() * opts.length)]!;
+    [t[blank], t[pick]] = [t[pick]!, t[blank]!];
     prev = blank;
     blank = pick;
   }
@@ -69,7 +69,7 @@ function Game() {
     const adj = (Math.abs(i - b) === n) || (Math.abs(i - b) === 1 && Math.floor(i / n) === Math.floor(b / n));
     if (!adj) return;
     const t = [...tiles];
-    [t[i], t[b]] = [t[b], t[i]];
+    [t[i], t[b]] = [t[b]!, t[i]!];
     setTiles(t);
     setMoves((m) => m + 1);
   };
