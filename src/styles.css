@@ -59,19 +59,21 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --font-display: "Fredoka", system-ui, sans-serif;
+  --shadow-pop: 0 8px 0 oklch(0.45 0.1 50 / 0.5);
 }
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.129 0.042 264.695);
+  --background: oklch(0.95 0.06 85);
+  --foreground: oklch(0.3 0.06 50);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.129 0.042 264.695);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.129 0.042 264.695);
-  --primary: oklch(0.208 0.042 265.755);
-  --primary-foreground: oklch(0.984 0.003 247.858);
-  --secondary: oklch(0.968 0.007 247.896);
+  --primary: oklch(0.62 0.19 45);
+  --primary-foreground: oklch(0.99 0.02 85);
+  --secondary: oklch(0.55 0.08 60);
   --secondary-foreground: oklch(0.208 0.042 265.755);
   --muted: oklch(0.968 0.007 247.896);
   --muted-foreground: oklch(0.554 0.046 257.417);
@@ -142,3 +144,15 @@
     color: var(--color-foreground);
   }
 }
+
+body { font-family: "Nunito", system-ui, sans-serif; }
+.safari-bg { background: linear-gradient(180deg, oklch(0.85 0.13 70), oklch(0.93 0.08 95) 60%, oklch(0.82 0.12 130)); }
+.font-display { font-family: var(--font-display); font-weight: 700; }
+.shadow-pop { box-shadow: var(--shadow-pop); }
+.btn-chunky { display:flex; align-items:center; gap:.75rem; width:100%; padding:.9rem 1.25rem; border-radius:1.5rem; font-family:var(--font-display); font-size:1.5rem; background:var(--primary); color:var(--primary-foreground); box-shadow:0 6px 0 oklch(0.45 0.15 40); transition:transform .1s; }
+.btn-chunky:active { transform:translateY(4px); box-shadow:0 2px 0 oklch(0.45 0.15 40); }
+.pill { background:var(--card); color:var(--foreground); padding:.5rem 1rem; border-radius:999px; font-size:1.4rem; box-shadow:0 4px 0 oklch(0.45 0.1 50 / .4); }
+@keyframes bob { 50% { transform: translateY(-8px) rotate(-1deg); } }
+.animate-bob { animation: bob 3s ease-in-out infinite; }
+@keyframes popin { from { transform: scale(.6); opacity:0 } }
+.animate-pop { animation: popin .4s cubic-bezier(.3,1.6,.5,1); }
