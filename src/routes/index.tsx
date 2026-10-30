@@ -1,6 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import safari from "@/assets/safari.jpg";
+import puzzleLion from "@/assets/puzzle-lion.jpg";
+import puzzleElephant from "@/assets/puzzle-elephant.jpg";
+import puzzleLeopard from "@/assets/puzzle-leopard.jpg";
+import puzzleRhino from "@/assets/puzzle-rhino.jpg";
+import puzzleBuffalo from "@/assets/puzzle-buffalo.jpg";
+import puzzleMaasai from "@/assets/puzzle-maasai.jpg";
 import bongoBaby from "@/assets/bongo-baby.png";
 import bongoTeen from "@/assets/bongo-teen.png";
 import bongoMighty from "@/assets/bongo-mighty.png";
