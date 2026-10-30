@@ -1,14 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import safari from "@/assets/safari.jpg";
+import bongoBaby from "@/assets/bongo-baby.png";
+import bongoTeen from "@/assets/bongo-teen.png";
+import bongoMighty from "@/assets/bongo-mighty.png";
+import bongoSad from "@/assets/bongo-sad.png";
+import { stageFor, gridFor, moveLimitFor, MIGHTY_AT } from "@/lib/bongo";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Safari Slide — Kids Puzzle Adventure" },
-      { name: "description", content: "Slide the tiles to rebuild the African safari! A fun puzzle game for kids." },
-      { property: "og:title", content: "Safari Slide — Kids Puzzle Adventure" },
-      { property: "og:description", content: "Slide the tiles to rebuild the African safari scene." },
+      { title: "Bongo's Safari Puzzles — Feed the Little Gorilla" },
+      { name: "description", content: "Help Bongo the little gorilla solve safari puzzles, earn bananas and grow into a mighty gorilla!" },
+      { property: "og:title", content: "Bongo's Safari Puzzles" },
+      { property: "og:description", content: "Solve puzzles, feed Bongo bananas and watch him grow mighty!" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -16,57 +21,64 @@ export const Route = createFileRoute("/")({
   component: Game,
 });
 
-const LEVELS = [
-  { n: 2, label: "Cub", emoji: "🐾" },
-  { n: 3, label: "Ranger", emoji: "🦓" },
-  { n: 4, label: "Explorer", emoji: "🦁" },
-];
+const STAGE = {
+  baby: { img: bongoBaby, name: "Baby Bongo" },
+  young: { img: bongoTeen, name: "Strong Bongo" },
+  mighty: { img: bongoMighty, name: "Mighty King Bongo" },
+};
 
-function solved(n: number) {
-  return Array.from({ length: n * n }, (_, i) => i);
-}
-
-function shuffle(n: number) {
-  let t = solved(n);
+function shuffle(n: number): number[] {
+  const t = Array.from({ length: n * n }, (_, i) => i);
   let blank = n * n - 1;
   let prev = -1;
   for (let k = 0; k < n * n * 25; k++) {
     const r = Math.floor(blank / n), c = blank % n;
-    const opts = [
-      r > 0 && blank - n, r < n - 1 && blank + n, c > 0 && blank - 1, c < n - 1 && blank + 1,
-    ].filter((x): x is number => x !== false && x !== prev);
+    const opts = [r > 0 && blank - n, r < n - 1 && blank + n, c > 0 && blank - 1, c < n - 1 && blank + 1]
+      .filter((x): x is number => x !== false && x !== prev);
     const pick = opts[Math.floor(Math.random() * opts.length)]!;
     [t[blank], t[pick]] = [t[pick]!, t[blank]!];
     prev = blank;
     blank = pick;
   }
-  if (t.every((v, i) => v === i)) t = shuffle(n);
-  return t;
+  return t.every((v, i) => v === i) ? shuffle(n) : t;
 }
 
+type Mode = "home" | "play" | "fed" | "hungry";
+
 function Game() {
-  const [level, setLevel] = useState<number | null>(null);
+  const [bananas, setBananas] = useState(0);
+  const [mode, setMode] = useState<Mode>("home");
   const [tiles, setTiles] = useState<number[]>([]);
+  const [n, setN] = useState(2);
   const [moves, setMoves] = useState(0);
   const [peek, setPeek] = useState(false);
-  const n = level ?? 3;
-  const blankVal = n * n - 1;
-  const won = useMemo(() => tiles.length > 0 && tiles.every((v, i) => v === i), [tiles]);
 
-  const start = (lvl: number) => {
-    setLevel(lvl);
-    setTiles(shuffle(lvl));
-    setMoves(0);
+  useEffect(() => {
+    const saved = Number(localStorage.getItem("bongo-bananas") || 0);
+    if (saved) setBananas(saved);
+  }, []);
+  useEffect(() => { localStorage.setItem("bongo-bananas", String(bananas)); }, [bananas]);
+
+  const stage = STAGE[stageFor(bananas)];
+  const limit = moveLimitFor(n);
+  const blankVal = n * n - 1;
+  const solved = useMemo(() => tiles.length > 0 && tiles.every((v, i) => v === i), [tiles]);
+  const bongoScale = 0.75 + Math.min(bananas, MIGHTY_AT) / MIGHTY_AT * 0.35;
+
+  const start = () => {
+    const size = gridFor(bananas);
+    setN(size); setTiles(shuffle(size)); setMoves(0); setMode("play");
   };
 
   useEffect(() => {
-    if (won && typeof navigator !== "undefined" && "vibrate" in navigator) navigator.vibrate?.(200);
-  }, [won]);
+    if (mode !== "play") return;
+    if (solved) { setBananas((b) => b + 1); setMode("fed"); }
+    else if (moves >= limit) setMode("hungry");
+  }, [solved, moves, limit, mode]);
 
   const tap = (i: number) => {
-    if (won) return;
     const b = tiles.indexOf(blankVal);
-    const adj = (Math.abs(i - b) === n) || (Math.abs(i - b) === 1 && Math.floor(i / n) === Math.floor(b / n));
+    const adj = Math.abs(i - b) === n || (Math.abs(i - b) === 1 && Math.floor(i / n) === Math.floor(b / n));
     if (!adj) return;
     const t = [...tiles];
     [t[i], t[b]] = [t[b]!, t[i]!];
@@ -74,22 +86,40 @@ function Game() {
     setMoves((m) => m + 1);
   };
 
-  if (level === null) {
+  const growth = Math.min(100, (bananas / MIGHTY_AT) * 100);
+
+  if (mode === "home" || mode === "fed" || mode === "hungry") {
+    const sad = mode === "hungry";
     return (
-      <main className="safari-bg flex min-h-screen flex-col items-center px-5 py-8">
-        <h1 className="font-display text-5xl text-primary drop-shadow-sm text-center leading-none">Safari<br />Slide</h1>
-        <p className="mt-2 text-center font-bold text-foreground/80">Fix the jungle picture!</p>
-        <img src={safari} alt="Safari animals" width={1024} height={1024}
-          className="mt-6 w-full max-w-xs rounded-3xl border-4 border-card shadow-pop animate-bob" />
-        <div className="mt-8 flex w-full max-w-xs flex-col gap-3">
-          {LEVELS.map((l) => (
-            <button key={l.n} onClick={() => start(l.n)} className="btn-chunky">
-              <span className="text-3xl">{l.emoji}</span>
-              <span className="flex-1 text-left">{l.label}</span>
-              <span className="text-base opacity-80">{l.n}×{l.n}</span>
-            </button>
-          ))}
+      <main className="safari-bg flex min-h-screen flex-col items-center px-5 py-8 text-center">
+        <h1 className="font-display text-4xl text-primary leading-none">Bongo's Safari<br />Puzzles</h1>
+        <div className="pill mt-4 font-display text-xl">🍌 {bananas} bananas</div>
+
+        <div className="relative mt-4 flex h-72 w-full max-w-xs items-end justify-center">
+          <img key={mode + bananas} src={sad ? bongoSad : stage.img} alt={sad ? "Hungry Bongo" : stage.name}
+            width={816} height={816}
+            className={`h-full object-contain ${sad ? "" : "animate-bob"} animate-pop`}
+            style={{ transform: `scale(${bongoScale})`, transformOrigin: "bottom" }} />
+          {mode === "fed" && <div className="absolute top-2 right-4 text-5xl animate-pop">🍌✨</div>}
         </div>
+
+        <p className="mt-2 font-display text-2xl">
+          {mode === "home" && (bananas === 0 ? "Hi! I'm Bongo! Help me solve puzzles so I can eat bananas!" : `${stage.name} is ready for another puzzle!`)}
+          {mode === "fed" && (stageFor(bananas) === "mighty" ? "ROAR! I'm a MIGHTY gorilla! Thank you! 💪" : "Yum yum! Thank you! I'm growing big and healthy! 💪")}
+          {mode === "hungry" && "Oh no… no banana. My tummy is rumbling and I can't grow. 😢"}
+        </p>
+
+        <div className="mt-4 w-full max-w-xs">
+          <div className="flex justify-between text-sm font-extrabold"><span>Baby</span><span>Mighty 👑</span></div>
+          <div className="mt-1 h-4 overflow-hidden rounded-full bg-card">
+            <div className="h-full rounded-full bg-primary transition-all duration-700" style={{ width: `${growth}%` }} />
+          </div>
+        </div>
+
+        <button onClick={start} className="btn-chunky mt-6 max-w-xs justify-center">
+          {mode === "hungry" ? "Try again 🍌" : mode === "fed" ? "Next puzzle ➜" : "Help Bongo! 🍌"}
+        </button>
+        <p className="mt-3 text-sm font-bold opacity-70">Next puzzle: {gridFor(bananas)}×{gridFor(bananas)}</p>
       </main>
     );
   }
@@ -97,19 +127,26 @@ function Game() {
   return (
     <main className="safari-bg flex min-h-screen flex-col items-center px-4 py-6">
       <div className="flex w-full max-w-sm items-center justify-between">
-        <button onClick={() => setLevel(null)} className="pill">🏠</button>
-        <div className="pill font-display text-xl">Moves: {moves}</div>
+        <button onClick={() => setMode("home")} className="pill">🏠</button>
+        <div className={`pill font-display text-xl ${limit - moves <= 10 ? "text-destructive" : ""}`}>
+          Moves left: {limit - moves}
+        </div>
         <button onPointerDown={() => setPeek(true)} onPointerUp={() => setPeek(false)} onPointerLeave={() => setPeek(false)} className="pill">👀</button>
       </div>
 
-      <div className="relative mt-6 aspect-square w-full max-w-sm rounded-3xl border-4 border-card bg-secondary p-1.5 shadow-pop">
-        <div className="grid h-full w-full gap-1.5" style={{ gridTemplateColumns: `repeat(${n}, 1fr)` }}>
+      <div className="mt-3 flex w-full max-w-sm items-center gap-3">
+        <img src={stage.img} alt="Bongo" width={816} height={816} className="h-20 w-20 object-contain animate-bob" />
+        <div className="rounded-2xl bg-card px-4 py-2 font-bold shadow-pop">Help me fix the picture so I get a banana! 🍌</div>
+      </div>
+
+      <div className="relative mt-4 aspect-square w-full max-w-sm rounded-3xl border-4 border-card bg-secondary p-1.5 shadow-pop">
+        <div className="grid h-full w-full gap-1" style={{ gridTemplateColumns: `repeat(${n}, 1fr)` }}>
           {tiles.map((v, i) => {
-            const isBlank = v === blankVal && !won;
+            const isBlank = v === blankVal;
             const r = Math.floor(v / n), c = v % n;
             return (
               <button key={v} onClick={() => tap(i)} aria-label={`tile ${v + 1}`}
-                className={`rounded-xl transition-transform active:scale-95 ${isBlank ? "bg-secondary/40" : "shadow-md"}`}
+                className={`rounded-lg transition-transform active:scale-95 ${isBlank ? "bg-secondary/40" : "shadow-md"}`}
                 style={isBlank ? undefined : {
                   backgroundImage: `url(${safari})`,
                   backgroundSize: `${n * 100}% ${n * 100}%`,
@@ -119,19 +156,8 @@ function Game() {
           })}
         </div>
         {peek && <img src={safari} alt="" className="absolute inset-0 h-full w-full rounded-3xl object-cover" />}
-        {won && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center rounded-3xl bg-background/70 backdrop-blur-sm animate-pop">
-            <div className="text-6xl">🎉🦒🎉</div>
-            <h2 className="mt-2 font-display text-4xl text-primary">Jambo! You did it!</h2>
-            <p className="font-bold">{moves} moves</p>
-            <div className="mt-4 flex gap-3">
-              <button onClick={() => start(n)} className="btn-chunky !w-auto">Again</button>
-              {n < 4 && <button onClick={() => start(n + 1)} className="btn-chunky !w-auto">Next ➜</button>}
-            </div>
-          </div>
-        )}
       </div>
-      <p className="mt-5 text-center font-bold text-foreground/70">Tap a tile next to the empty spot to slide it. Hold 👀 to peek!</p>
+      <p className="mt-4 text-center font-bold opacity-70">Tap a tile next to the empty spot. Hold 👀 to peek!</p>
     </main>
   );
 }
