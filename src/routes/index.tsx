@@ -89,11 +89,11 @@ function Game() {
   const solved = useMemo(() => tiles.length > 0 && tiles.every((v, i) => v === i), [tiles]);
   const bongoScale = 0.75 + Math.min(bananas, MIGHTY_AT) / MIGHTY_AT * 0.35;
 
-  const puzzle = PUZZLES[puzzleIdx % PUZZLES.length]!;
+  const puzzle = puzzleFor(puzzleIdx);
 
   const start = () => {
     const size = gridFor(bananas);
-    setPuzzleIdx(bananas % PUZZLES.length);
+    setPuzzleIdx(bananas);
     setN(size); setTiles(shuffle(size)); setMoves(0); setMode("play");
   };
 
@@ -147,7 +147,7 @@ function Game() {
           {mode === "hungry" ? "Try again 🍌" : mode === "fed" ? "Next puzzle ➜" : "Help Bongo! 🍌"}
         </button>
         <p className="mt-3 text-sm font-bold opacity-70">
-          Next puzzle: {PUZZLES[bananas % PUZZLES.length]!.emoji} {PUZZLES[bananas % PUZZLES.length]!.name} — {gridFor(bananas)}×{gridFor(bananas)}
+          Next puzzle: {puzzleFor(bananas).emoji} {puzzleFor(bananas).name} — {gridFor(bananas)}×{gridFor(bananas)}
         </p>
       </main>
     );
