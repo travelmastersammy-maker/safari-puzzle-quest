@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
+import { PuzzleBoard } from "@/components/puzzle-board";
 import puzzleLion from "@/assets/puzzle-lion.jpg";
 import puzzleElephant from "@/assets/puzzle-elephant.jpg";
 import puzzleLeopard from "@/assets/puzzle-leopard.jpg";
@@ -90,7 +91,6 @@ function Game() {
 
   const stage = STAGE[stageFor(bananas)];
   const limit = moveLimitFor(n);
-  const blankVal = n * n - 1;
   const solved = useMemo(() => tiles.length > 0 && tiles.every((v, i) => v === i), [tiles]);
   const bongoScale = 0.75 + Math.min(bananas, MIGHTY_AT) / MIGHTY_AT * 0.35;
 
@@ -107,16 +107,6 @@ function Game() {
     if (solved) { setBananas((b) => b + 1); setMode("fed"); }
     else if (moves >= limit) setMode("hungry");
   }, [solved, moves, limit, mode]);
-
-  const tap = (i: number) => {
-    const b = tiles.indexOf(blankVal);
-    const adj = Math.abs(i - b) === n || (Math.abs(i - b) === 1 && Math.floor(i / n) === Math.floor(b / n));
-    if (!adj) return;
-    const t = [...tiles];
-    [t[i], t[b]] = [t[b]!, t[i]!];
-    setTiles(t);
-    setMoves((m) => m + 1);
-  };
 
   const growth = Math.min(100, (bananas / MIGHTY_AT) * 100);
 
@@ -173,25 +163,8 @@ function Game() {
         <div className="rounded-2xl bg-card px-4 py-2 font-bold shadow-pop">Help me fix the {puzzle.emoji} {puzzle.name} picture so I get a banana! 🍌</div>
       </div>
 
-      <div className="relative mt-4 aspect-square w-full max-w-sm rounded-3xl border-4 border-card bg-secondary p-1.5 shadow-pop">
-        <div className="grid h-full w-full gap-1" style={{ gridTemplateColumns: `repeat(${n}, 1fr)` }}>
-          {tiles.map((v, i) => {
-            const isBlank = v === blankVal;
-            const r = Math.floor(v / n), c = v % n;
-            return (
-              <button key={v} onClick={() => tap(i)} aria-label={`tile ${v + 1}`}
-                className={`rounded-lg transition-transform active:scale-95 ${isBlank ? "bg-secondary/40" : "shadow-md"}`}
-                style={isBlank ? undefined : {
-                  backgroundImage: `url(${puzzle.img})`,
-                  backgroundSize: `${n * 100}% ${n * 100}%`,
-                  backgroundPosition: `${(c / (n - 1)) * 100}% ${(r / (n - 1)) * 100}%`,
-                }} />
-            );
-          })}
-        </div>
-        {peek && <img src={puzzle.img} alt={puzzle.name} className="absolute inset-0 h-full w-full rounded-3xl object-cover" />}
-      </div>
-      <p className="mt-4 text-center font-bold opacity-70">Tap a tile next to the empty spot. Hold 👀 to peek!</p>
+      <PuzzleBoard tiles={tiles} size={n} image={puzzle.img} name={puzzle.name} peek={peek}
+        onMove={(next) => { setTiles(next); setMoves((m) => m + 1); }} />
     </main>
   );
 }

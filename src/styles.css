@@ -156,3 +156,6 @@ body { font-family: "Nunito", system-ui, sans-serif; }
 .animate-bob { animation: bob 3s ease-in-out infinite; }
 @keyframes popin { from { transform: scale(.6); opacity:0 } }
 .animate-pop { animation: popin .4s cubic-bezier(.3,1.6,.5,1); }
+@media (prefers-reduced-motion: reduce) {
+  [aria-label$=" puzzle"] button { transition: none !important; }
+}
