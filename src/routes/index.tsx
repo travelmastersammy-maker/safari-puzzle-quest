@@ -67,6 +67,7 @@ function Game() {
   const [n, setN] = useState(2);
   const [moves, setMoves] = useState(0);
   const [peek, setPeek] = useState(false);
+  const [puzzleIdx, setPuzzleIdx] = useState(0);
 
   useEffect(() => {
     const saved = Number(localStorage.getItem("bongo-bananas") || 0);
