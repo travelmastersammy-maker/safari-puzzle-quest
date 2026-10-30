@@ -32,6 +32,16 @@ const STAGE = {
   mighty: { img: bongoMighty, name: "Mighty King Bongo" },
 };
 
+// Puzzle pictures: the Big Five plus a Maasai warrior, cycling as Bongo grows.
+const PUZZLES = [
+  { img: puzzleLion, name: "Lion", emoji: "🦁" },
+  { img: puzzleElephant, name: "Elephant", emoji: "🐘" },
+  { img: puzzleLeopard, name: "Leopard", emoji: "🐆" },
+  { img: puzzleRhino, name: "Rhino", emoji: "🦏" },
+  { img: puzzleBuffalo, name: "Buffalo", emoji: "🐃" },
+  { img: puzzleMaasai, name: "Maasai Warrior", emoji: "🛡️" },
+];
+
 function shuffle(n: number): number[] {
   const t = Array.from({ length: n * n }, (_, i) => i);
   let blank = n * n - 1;
