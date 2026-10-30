@@ -6,10 +6,16 @@ import puzzleLeopard from "@/assets/puzzle-leopard.jpg";
 import puzzleRhino from "@/assets/puzzle-rhino.jpg";
 import puzzleBuffalo from "@/assets/puzzle-buffalo.jpg";
 import puzzleMaasai from "@/assets/puzzle-maasai.jpg";
-import bongoBaby from "@/assets/bongo-baby.png";
-import bongoTeen from "@/assets/bongo-teen.png";
-import bongoMighty from "@/assets/bongo-mighty.png";
-import bongoSad from "@/assets/bongo-sad.png";
+import puzzleSnake from "@/assets/puzzle-snake.jpg";
+import bongoBabyAsset from "@/assets/bongo-baby.png.asset.json";
+import bongoTeenAsset from "@/assets/bongo-teen.png.asset.json";
+import bongoMightyAsset from "@/assets/bongo-mighty.png.asset.json";
+import bongoSadAsset from "@/assets/bongo-sad.png.asset.json";
+
+const bongoBaby = bongoBabyAsset.url;
+const bongoTeen = bongoTeenAsset.url;
+const bongoMighty = bongoMightyAsset.url;
+const bongoSad = bongoSadAsset.url;
 import { stageFor, gridFor, moveLimitFor, MIGHTY_AT } from "@/lib/bongo";
 
 export const Route = createFileRoute("/")({
@@ -41,6 +47,13 @@ const PUZZLES = [
   { img: puzzleBuffalo, name: "Buffalo", emoji: "🐃" },
   { img: puzzleMaasai, name: "Maasai Warrior", emoji: "🛡️" },
 ];
+
+// Hard levels (4x4 and up) are always the tricky snake puzzle.
+const SNAKE = { img: puzzleSnake, name: "Snake", emoji: "🐍" };
+
+function puzzleFor(bananas: number) {
+  return gridFor(bananas) >= 4 ? SNAKE : PUZZLES[bananas % PUZZLES.length]!;
+}
 
 function shuffle(n: number): number[] {
   const t = Array.from({ length: n * n }, (_, i) => i);
@@ -81,11 +94,11 @@ function Game() {
   const solved = useMemo(() => tiles.length > 0 && tiles.every((v, i) => v === i), [tiles]);
   const bongoScale = 0.75 + Math.min(bananas, MIGHTY_AT) / MIGHTY_AT * 0.35;
 
-  const puzzle = PUZZLES[puzzleIdx % PUZZLES.length]!;
+  const puzzle = puzzleFor(puzzleIdx);
 
   const start = () => {
     const size = gridFor(bananas);
-    setPuzzleIdx(bananas % PUZZLES.length);
+    setPuzzleIdx(bananas);
     setN(size); setTiles(shuffle(size)); setMoves(0); setMode("play");
   };
 
@@ -139,7 +152,7 @@ function Game() {
           {mode === "hungry" ? "Try again 🍌" : mode === "fed" ? "Next puzzle ➜" : "Help Bongo! 🍌"}
         </button>
         <p className="mt-3 text-sm font-bold opacity-70">
-          Next puzzle: {PUZZLES[bananas % PUZZLES.length]!.emoji} {PUZZLES[bananas % PUZZLES.length]!.name} — {gridFor(bananas)}×{gridFor(bananas)}
+          Next puzzle: {puzzleFor(bananas).emoji} {puzzleFor(bananas).name} — {gridFor(bananas)}×{gridFor(bananas)}
         </p>
       </main>
     );
