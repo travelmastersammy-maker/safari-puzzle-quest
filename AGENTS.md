@@ -8,3 +8,5 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Keep pointer-based puzzle dragging in PuzzleBoard and validate moves through the shared pure moveIntoEmpty helper, so touch and mouse obey the same sliding rules.
