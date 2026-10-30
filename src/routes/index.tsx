@@ -6,6 +6,7 @@ import puzzleLeopard from "@/assets/puzzle-leopard.jpg";
 import puzzleRhino from "@/assets/puzzle-rhino.jpg";
 import puzzleBuffalo from "@/assets/puzzle-buffalo.jpg";
 import puzzleMaasai from "@/assets/puzzle-maasai.jpg";
+import puzzleSnake from "@/assets/puzzle-snake.jpg";
 import bongoBaby from "@/assets/bongo-baby.png";
 import bongoTeen from "@/assets/bongo-teen.png";
 import bongoMighty from "@/assets/bongo-mighty.png";
@@ -41,6 +42,13 @@ const PUZZLES = [
   { img: puzzleBuffalo, name: "Buffalo", emoji: "🐃" },
   { img: puzzleMaasai, name: "Maasai Warrior", emoji: "🛡️" },
 ];
+
+// Hard levels (4x4 and up) are always the tricky snake puzzle.
+const SNAKE = { img: puzzleSnake, name: "Snake", emoji: "🐍" };
+
+function puzzleFor(bananas: number) {
+  return gridFor(bananas) >= 4 ? SNAKE : PUZZLES[bananas % PUZZLES.length]!;
+}
 
 function shuffle(n: number): number[] {
   const t = Array.from({ length: n * n }, (_, i) => i);
