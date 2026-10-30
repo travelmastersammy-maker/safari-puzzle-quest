@@ -169,14 +169,14 @@ function Game() {
               <button key={v} onClick={() => tap(i)} aria-label={`tile ${v + 1}`}
                 className={`rounded-lg transition-transform active:scale-95 ${isBlank ? "bg-secondary/40" : "shadow-md"}`}
                 style={isBlank ? undefined : {
-                  backgroundImage: `url(${safari})`,
+                  backgroundImage: `url(${puzzle.img})`,
                   backgroundSize: `${n * 100}% ${n * 100}%`,
                   backgroundPosition: `${(c / (n - 1)) * 100}% ${(r / (n - 1)) * 100}%`,
                 }} />
             );
           })}
         </div>
-        {peek && <img src={safari} alt="" className="absolute inset-0 h-full w-full rounded-3xl object-cover" />}
+        {peek && <img src={puzzle.img} alt={puzzle.name} className="absolute inset-0 h-full w-full rounded-3xl object-cover" />}
       </div>
       <p className="mt-4 text-center font-bold opacity-70">Tap a tile next to the empty spot. Hold 👀 to peek!</p>
     </main>
