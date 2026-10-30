@@ -1,6 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import safari from "@/assets/safari.jpg";
+import puzzleLion from "@/assets/puzzle-lion.jpg";
+import puzzleElephant from "@/assets/puzzle-elephant.jpg";
+import puzzleLeopard from "@/assets/puzzle-leopard.jpg";
+import puzzleRhino from "@/assets/puzzle-rhino.jpg";
+import puzzleBuffalo from "@/assets/puzzle-buffalo.jpg";
+import puzzleMaasai from "@/assets/puzzle-maasai.jpg";
 import bongoBaby from "@/assets/bongo-baby.png";
 import bongoTeen from "@/assets/bongo-teen.png";
 import bongoMighty from "@/assets/bongo-mighty.png";
@@ -27,6 +32,16 @@ const STAGE = {
   mighty: { img: bongoMighty, name: "Mighty King Bongo" },
 };
 
+// Puzzle pictures: the Big Five plus a Maasai warrior, cycling as Bongo grows.
+const PUZZLES = [
+  { img: puzzleLion, name: "Lion", emoji: "🦁" },
+  { img: puzzleElephant, name: "Elephant", emoji: "🐘" },
+  { img: puzzleLeopard, name: "Leopard", emoji: "🐆" },
+  { img: puzzleRhino, name: "Rhino", emoji: "🦏" },
+  { img: puzzleBuffalo, name: "Buffalo", emoji: "🐃" },
+  { img: puzzleMaasai, name: "Maasai Warrior", emoji: "🛡️" },
+];
+
 function shuffle(n: number): number[] {
   const t = Array.from({ length: n * n }, (_, i) => i);
   let blank = n * n - 1;
@@ -52,6 +67,7 @@ function Game() {
   const [n, setN] = useState(2);
   const [moves, setMoves] = useState(0);
   const [peek, setPeek] = useState(false);
+  const [puzzleIdx, setPuzzleIdx] = useState(0);
 
   useEffect(() => {
     const saved = Number(localStorage.getItem("bongo-bananas") || 0);
@@ -65,8 +81,11 @@ function Game() {
   const solved = useMemo(() => tiles.length > 0 && tiles.every((v, i) => v === i), [tiles]);
   const bongoScale = 0.75 + Math.min(bananas, MIGHTY_AT) / MIGHTY_AT * 0.35;
 
+  const puzzle = PUZZLES[puzzleIdx % PUZZLES.length]!;
+
   const start = () => {
     const size = gridFor(bananas);
+    setPuzzleIdx(bananas % PUZZLES.length);
     setN(size); setTiles(shuffle(size)); setMoves(0); setMode("play");
   };
 
@@ -119,7 +138,9 @@ function Game() {
         <button onClick={start} className="btn-chunky mt-6 max-w-xs justify-center">
           {mode === "hungry" ? "Try again 🍌" : mode === "fed" ? "Next puzzle ➜" : "Help Bongo! 🍌"}
         </button>
-        <p className="mt-3 text-sm font-bold opacity-70">Next puzzle: {gridFor(bananas)}×{gridFor(bananas)}</p>
+        <p className="mt-3 text-sm font-bold opacity-70">
+          Next puzzle: {PUZZLES[bananas % PUZZLES.length]!.emoji} {PUZZLES[bananas % PUZZLES.length]!.name} — {gridFor(bananas)}×{gridFor(bananas)}
+        </p>
       </main>
     );
   }
@@ -136,7 +157,7 @@ function Game() {
 
       <div className="mt-3 flex w-full max-w-sm items-center gap-3">
         <img src={stage.img} alt="Bongo" width={816} height={816} className="h-20 w-20 object-contain animate-bob" />
-        <div className="rounded-2xl bg-card px-4 py-2 font-bold shadow-pop">Help me fix the picture so I get a banana! 🍌</div>
+        <div className="rounded-2xl bg-card px-4 py-2 font-bold shadow-pop">Help me fix the {puzzle.emoji} {puzzle.name} picture so I get a banana! 🍌</div>
       </div>
 
       <div className="relative mt-4 aspect-square w-full max-w-sm rounded-3xl border-4 border-card bg-secondary p-1.5 shadow-pop">
@@ -148,14 +169,14 @@ function Game() {
               <button key={v} onClick={() => tap(i)} aria-label={`tile ${v + 1}`}
                 className={`rounded-lg transition-transform active:scale-95 ${isBlank ? "bg-secondary/40" : "shadow-md"}`}
                 style={isBlank ? undefined : {
-                  backgroundImage: `url(${safari})`,
+                  backgroundImage: `url(${puzzle.img})`,
                   backgroundSize: `${n * 100}% ${n * 100}%`,
                   backgroundPosition: `${(c / (n - 1)) * 100}% ${(r / (n - 1)) * 100}%`,
                 }} />
             );
           })}
         </div>
-        {peek && <img src={safari} alt="" className="absolute inset-0 h-full w-full rounded-3xl object-cover" />}
+        {peek && <img src={puzzle.img} alt={puzzle.name} className="absolute inset-0 h-full w-full rounded-3xl object-cover" />}
       </div>
       <p className="mt-4 text-center font-bold opacity-70">Tap a tile next to the empty spot. Hold 👀 to peek!</p>
     </main>
