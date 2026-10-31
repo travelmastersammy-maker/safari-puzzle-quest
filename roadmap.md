@@ -1,3 +1,3 @@
-- [ ] Add park unlocking, wildlife collection, and gameplay upgrades.
-- [ ] Connect persistent progression while preserving existing Bongo progress.
-- [ ] Verify reward, replay, unlock, and drag flows with tests and the game.
+- [x] Add park journey (Congo → 15 parks → home to Congo), wildlife cards, and gear upgrades.
+- [x] Save progress on the device while keeping existing bananas.
+- [x] Tests for unlock/reward/upgrade rules.
