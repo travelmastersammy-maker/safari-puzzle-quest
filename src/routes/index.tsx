@@ -18,6 +18,7 @@ const bongoTeen = bongoTeenAsset.url;
 const bongoMighty = bongoMightyAsset.url;
 const bongoSad = bongoSadAsset.url;
 import { stageFor, gridFor, moveLimitFor, MIGHTY_AT } from "@/lib/bongo";
+import { PARKS, ALL_CARDS, UPGRADES, PARK_EVERY, parkIndexFor, winCards, hungryCards, bonusMoves, upgradesFor } from "@/lib/progression";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -73,24 +74,37 @@ function shuffle(n: number): number[] {
 }
 
 type Mode = "home" | "play" | "fed" | "hungry";
+type Tab = "map" | "dex" | "gear";
 
 function Game() {
   const [bananas, setBananas] = useState(0);
+  const [cards, setCards] = useState<string[]>([]);
+  const [newCards, setNewCards] = useState<string[]>([]);
+  const [tab, setTab] = useState<Tab>("map");
   const [mode, setMode] = useState<Mode>("home");
   const [tiles, setTiles] = useState<number[]>([]);
   const [n, setN] = useState(2);
   const [moves, setMoves] = useState(0);
   const [peek, setPeek] = useState(false);
   const [puzzleIdx, setPuzzleIdx] = useState(0);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     const saved = Number(localStorage.getItem("bongo-bananas") || 0);
     if (saved) setBananas(saved);
+    try { setCards(JSON.parse(localStorage.getItem("bongo-cards") || "[]")); } catch { /* ignore */ }
+    setLoaded(true);
   }, []);
-  useEffect(() => { localStorage.setItem("bongo-bananas", String(bananas)); }, [bananas]);
+  useEffect(() => {
+    if (!loaded) return;
+    localStorage.setItem("bongo-bananas", String(bananas));
+    localStorage.setItem("bongo-cards", JSON.stringify(cards));
+  }, [bananas, cards, loaded]);
 
   const stage = STAGE[stageFor(bananas)];
-  const limit = moveLimitFor(n);
+  const parkIdx = parkIndexFor(bananas);
+  const park = PARKS[parkIdx]!;
+  const limit = moveLimitFor(n) + bonusMoves(cards.length);
   const solved = useMemo(() => tiles.length > 0 && tiles.every((v, i) => v === i), [tiles]);
   const bongoScale = 0.75 + Math.min(bananas, MIGHTY_AT) / MIGHTY_AT * 0.35;
 
@@ -99,25 +113,39 @@ function Game() {
   const start = () => {
     const size = gridFor(bananas);
     setPuzzleIdx(bananas);
-    setN(size); setTiles(shuffle(size)); setMoves(0); setMode("play");
+    setN(size); setTiles(shuffle(size)); setMoves(0); setNewCards([]); setMode("play");
   };
 
   useEffect(() => {
     if (mode !== "play") return;
-    if (solved) { setBananas((b) => b + 1); setMode("fed"); }
-    else if (moves >= limit) setMode("hungry");
-  }, [solved, moves, limit, mode]);
+    if (solved) {
+      const won = winCards(parkIdx, cards);
+      setCards((c) => [...c, ...won]); setNewCards(won);
+      setBananas((b) => b + 1); setMode("fed");
+    } else if (moves >= limit) {
+      const kept = hungryCards(parkIdx, cards);
+      setCards((c) => [...c, ...kept]); setNewCards(kept);
+      setMode("hungry");
+    }
+  }, [solved, moves, limit, mode, parkIdx, cards]);
 
   const growth = Math.min(100, (bananas / MIGHTY_AT) * 100);
+  const home = park.id === "homecoming";
+  const newPark = mode === "fed" && bananas % PARK_EVERY === 0 && parkIndexFor(bananas - 1) < parkIdx;
+  const gear = upgradesFor(cards.length);
 
   if (mode === "home" || mode === "fed" || mode === "hungry") {
     const sad = mode === "hungry";
     return (
       <main className="safari-bg flex min-h-screen flex-col items-center px-5 py-8 text-center">
         <h1 className="font-display text-4xl text-primary leading-none">Bongo's Safari<br />Puzzles</h1>
-        <div className="pill mt-4 font-display text-xl">🍌 {bananas} bananas</div>
+        <div className="mt-4 flex flex-wrap justify-center gap-2">
+          <div className="pill font-display text-lg">🍌 {bananas}</div>
+          <div className="pill font-display text-lg">🃏 {cards.length}/{ALL_CARDS.length}</div>
+          <div className="pill font-display text-lg">{park.flag} {park.name}</div>
+        </div>
 
-        <div className="relative mt-4 flex h-72 w-full max-w-xs items-end justify-center">
+        <div className="relative mt-4 flex h-64 w-full max-w-xs items-end justify-center">
           <img key={mode + bananas} src={sad ? bongoSad : stage.img} alt={sad ? "Hungry Bongo" : stage.name}
             width={816} height={816}
             className={`h-full object-contain ${sad ? "" : "animate-bob"} animate-pop`}
@@ -126,10 +154,17 @@ function Game() {
         </div>
 
         <p className="mt-2 font-display text-2xl">
-          {mode === "home" && (bananas === 0 ? "Hi! I'm Bongo! Help me solve puzzles so I can eat bananas!" : `${stage.name} is ready for another puzzle!`)}
-          {mode === "fed" && (stageFor(bananas) === "mighty" ? "ROAR! I'm a MIGHTY gorilla! Thank you! 💪" : "Yum yum! Thank you! I'm growing big and healthy! 💪")}
+          {mode === "home" && (bananas === 0 ? "Hi! I'm Bongo from the Congo forest! Help me solve puzzles and travel across Africa!" : home ? "I'm home in Congo! My old family friends are here! 🦍❤️" : `${stage.name} is exploring ${park.name}!`)}
+          {mode === "fed" && (newPark ? (home ? "I'm back home in Congo! Grandpa, Mama and my friends are so happy! 🦍❤️" : `New park unlocked: ${park.flag} ${park.name}!`) : stageFor(bananas) === "mighty" ? "ROAR! I'm a MIGHTY gorilla! 💪" : "Yum yum! I'm growing big and healthy! 💪")}
           {mode === "hungry" && "Oh no… no banana. My tummy is rumbling and I can't grow. 😢"}
         </p>
+        {newCards.length > 0 && (
+          <div className="mt-3 flex flex-wrap justify-center gap-2">
+            {newCards.map((id) => { const c = ALL_CARDS.find((x) => x.id === id)!; return (
+              <div key={id} className="animate-pop rounded-2xl bg-card px-3 py-2 font-bold shadow-pop">New card! {c.emoji} {c.name}</div>
+            ); })}
+          </div>
+        )}
 
         <div className="mt-4 w-full max-w-xs">
           <div className="flex justify-between text-sm font-extrabold"><span>Baby</span><span>Mighty 👑</span></div>
@@ -144,6 +179,59 @@ function Game() {
         <p className="mt-3 text-sm font-bold opacity-70">
           Next puzzle: {puzzleFor(bananas).emoji} {puzzleFor(bananas).name} — {gridFor(bananas)}×{gridFor(bananas)}
         </p>
+
+        <div className="mt-6 flex gap-2">
+          {(["map", "dex", "gear"] as Tab[]).map((t) => (
+            <button key={t} onClick={() => setTab(t)} className={`pill font-display ${tab === t ? "bg-primary text-primary-foreground" : ""}`}>
+              {t === "map" ? "🗺️ Journey" : t === "dex" ? "🃏 Cards" : "🎒 Gear"}
+            </button>
+          ))}
+        </div>
+
+        <section className="mt-4 w-full max-w-md text-left">
+          {tab === "map" && (
+            <ol className="space-y-2">
+              {PARKS.map((p, i) => {
+                const open = i <= parkIdx;
+                const got = p.cards.filter((c) => cards.includes(c.id)).length;
+                return (
+                  <li key={p.id} className={`flex items-center gap-3 rounded-2xl bg-card px-4 py-2 shadow-pop ${open ? "" : "opacity-50"} ${i === parkIdx ? "ring-2 ring-primary" : ""}`}>
+                    <span className="text-2xl">{open ? p.flag : "🔒"}</span>
+                    <div className="flex-1">
+                      <div className="font-display">{i + 1}. {p.name}</div>
+                      <div className="text-xs font-bold opacity-70">{p.country} · {open ? `${got}/${p.cards.length} cards` : `Unlocks at 🍌 ${i * PARK_EVERY}`}</div>
+                    </div>
+                    {i === parkIdx && <span className="text-xl">🦍</span>}
+                  </li>
+                );
+              })}
+            </ol>
+          )}
+          {tab === "dex" && PARKS.slice(0, parkIdx + 1).map((p) => (
+            <div key={p.id} className="mb-3">
+              <div className="font-display">{p.flag} {p.name}</div>
+              <div className="mt-1 grid grid-cols-4 gap-2">
+                {p.cards.map((c) => { const has = cards.includes(c.id); return (
+                  <div key={c.id} className="flex flex-col items-center rounded-xl bg-card p-2 text-center shadow-pop">
+                    <span className="text-3xl">{has ? c.emoji : "❔"}</span>
+                    <span className="text-[10px] font-bold leading-tight">{has ? c.name : "???"}</span>
+                    {has && <span className="text-[9px] opacity-60">{c.kind}</span>}
+                  </div>
+                ); })}
+              </div>
+            </div>
+          ))}
+          {tab === "gear" && (
+            <ul className="space-y-2">
+              {UPGRADES.map((u) => { const has = gear.includes(u); return (
+                <li key={u.id} className={`flex items-center gap-3 rounded-2xl bg-card px-4 py-2 shadow-pop ${has ? "" : "opacity-50"}`}>
+                  <span className="text-2xl">{has ? u.emoji : "🔒"}</span>
+                  <div><div className="font-display">{u.name}</div><div className="text-xs font-bold opacity-70">{u.perk}{has ? "" : ` · needs ${u.cards} cards`}</div></div>
+                </li>
+              ); })}
+            </ul>
+          )}
+        </section>
       </main>
     );
   }
@@ -160,7 +248,7 @@ function Game() {
 
       <div className="mt-3 flex w-full max-w-sm items-center gap-3">
         <img src={stage.img} alt="Bongo" width={816} height={816} className="h-20 w-20 object-contain animate-bob" />
-        <div className="rounded-2xl bg-card px-4 py-2 font-bold shadow-pop">Help me fix the {puzzle.emoji} {puzzle.name} picture so I get a banana! 🍌</div>
+        <div className="rounded-2xl bg-card px-4 py-2 font-bold shadow-pop">{park.flag} {park.name}: help me fix the {puzzle.emoji} {puzzle.name} picture so I get a banana! 🍌</div>
       </div>
 
       <PuzzleBoard tiles={tiles} size={n} image={puzzle.img} name={puzzle.name} peek={peek}
